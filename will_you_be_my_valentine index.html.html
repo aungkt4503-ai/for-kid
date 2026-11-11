@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Will You Be My Girlfriend?</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- Google Fonts: Nunito & Pacifico -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 50%, #ffc3a0 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      margin: 0;
+      position: relative;
+    }
+
+    .cursive {
+      font-family: 'Pacifico', cursive;
+    }
+
+    /* Floating background hearts animation */
+    .bg-heart {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.45);
+      animation: floatUp 8s linear infinite;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(105vh) scale(0.8) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.8;
+      }
+      80% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-10vh) scale(1.3) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Heart particle burst on click */
+    .burst-heart {
+      position: fixed;
+      pointer-events: none;
+      animation: heartBurst 1.2s ease-out forwards;
+      z-index: 99;
+      font-size: 1.5rem;
+    }
+
+    @keyframes heartBurst {
+      0% {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tw-x), var(--tw-y)) scale(1.5) rotate(var(--tw-r));
+        opacity: 0;
+      }
+    }
+
+    /* Soft card shadow & blur */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(238, 110, 133, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    /* Custom smooth transition for scaling button */
+    #yesBtn {
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, box-shadow 0.2s;
+    }
+
+    /* Pulse animation for Yes button */
+    @keyframes gentlePulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); }
+      50% { box-shadow: 0 0 28px rgba(244, 63, 94, 0.7); }
+    }
+
+    .pulse-glow {
+      animation: gentlePulse 2s infinite;
+    }
+
+    /* Smooth teleport for No button */
+    #noBtn {
+      transition: left 0.2s ease-out, top 0.2s ease-out, transform 0.2s ease-out;
+    }
+
+    /* Pop-in animation for celebration card */
+    .pop-in {
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4 min-h-screen relative select-none">
+
+  <!-- Background Floating Hearts Container -->
+  <div id="heartsBg" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+  <!-- Main Container -->
+  <main class="relative z-10 w-full max-w-md">
+
+    <!-- QUESTION CARD -->
+    <div id="questionCard" class="glass-card rounded-3xl p-6 md:p-8 text-center flex flex-col items-center transition-all duration-300">
+      
+      <!-- Bear GIF -->
+      <div class="relative w-44 h-44 md:w-52 md:h-52 mb-4 rounded-2xl overflow-hidden flex items-center justify-center bg-rose-50/50 p-2">
+        <img 
+          id="bearImg" 
+          src="https://media.tenor.com/ZhNxfL0GmoMAAAAj/mocha-bear-hearts.gif" 
+          alt="Cute Love Bear asking" 
+          class="w-full h-full object-contain filter drop-shadow-md transition-all duration-300"
+          onerror="this.src='https://placehold.co/200x200/ffe4e6/be123c?text=Cute+Bear+🐻❤️'"
+        />
+      </div>
+
+      <!-- Headline -->
+      <h1 class="cursive text-3xl md:text-4xl text-rose-600 mb-2 font-bold tracking-wide drop-shadow-sm">
+        Will you be my girlfriend?
+      </h1>
+      <p class="text-rose-800/80 text-sm md:text-base font-semibold mb-6">
+        နော်... ကိုယ့်ကို အပျော်ဆုံးလူသား ဖြစ်ခွင့်ပေးပါ 🥺✨
+      </p>
+
+      <!-- Buttons Area -->
+      <div id="buttonsContainer" class="relative w-full min-h-[120px] flex items-center justify-center gap-4 flex-wrap">
+        
+        <!-- Yes Button -->
+        <button 
+          id="yesBtn" 
+          onclick="handleYesClick()"
+          class="pulse-glow bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-extrabold px-8 py-3.5 rounded-full text-lg shadow-lg active:scale-95 z-20 cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span>YES!</span> 💖
+        </button>
+
+        <!-- No Button -->
+        <button 
+          id="noBtn" 
+          onmouseenter="dodgeNoButton()"
+          onclick="dodgeNoButton()"
+          ontouchstart="dodgeNoButton(event)"
+          class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-3.5 rounded-full text-base shadow-md transition-all z-10 cursor-pointer whitespace-nowrap"
+        >
+          No 💔
+        </button>
+
+      </div>
+    </div>
+
+    <!-- CELEBRATION CARD (Initially Hidden) -->
+    <div id="celebrationCard" class="hidden glass-card rounded-3xl p-8 text-center flex-col items-center pop-in">
+      
+      <!-- Happy Bear Hug GIF -->
+      <div class="relative w-52 h-52 md:w-60 md:h-60 mb-4 rounded-2xl overflow-hidden flex items-center justify-center bg-rose-50/50 p-2">
+        <img 
+          src="https://media.tenor.com/d2nnuVMvPbcAAAAi/milk-and-mocha-milk-and-mocha-bear.gif" 
+          alt="Happy Bear Hug Celebration" 
+          class="w-full h-full object-contain filter drop-shadow-md"
+          onerror="this.src='https://placehold.co/200x200/ffe4e6/be123c?text=Happy+Hug!+🐻❤️'"
+        />
+      </div>
+
+      <!-- Celebration Message -->
+      <h1 class="cursive text-4xl md:text-5xl text-rose-600 mb-3 font-bold tracking-wide">
+        ရေး... ပျော်လိုက်တာ! 🎉
+      </h1>
+      <p class="text-rose-800 text-lg md:text-xl font-bold mb-2">
+        မင်း အဖြေပြန်ပေးမယ်ဆိုတာ ကိုယ်သိနေတယ်လေ 🥰
+      </p>
+      <p class="text-rose-600/90 text-sm md:text-base font-medium max-w-xs">
+        You've officially made me the happiest person in the whole wide world! Let's make endless sweet memories together. ✨
+      </p>
+
+      <!-- Restart / Replay Love Button -->
+      <button 
+        onclick="resetCard()"
+        class="mt-6 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-6 py-2.5 rounded-full text-sm transition-all shadow-sm"
+      >
+        Ask again 💕
+      </button>
+
+    </div>
+
+  </main>
+
+  <script>
+    // Playful excuses list for No button
+    const noExcuses = [
+      "No 💔",
+      "Are you sure? 🥺",
+      "Really sure?? 😳",
+      "Think again! 💭",
+      "Last chance! 😭",
+      "Surely not? 🥺",
+      "You're breaking my heart! 💔",
+      "Don't do this to me! 🧸",
+      "Give it another thought! ✨",
+      "Change your mind? 💖",
+      "Pretty please? 🥺❤️",
+      "You don't mean that! 🙈",
+      "Look at the Yes button again! 👉",
+      "Nice try! 😜",
+      "No isn't an option! 💕"
+    ];
+
+    let excuseIndex = 0;
+    let yesScale = 1;
+    let isAbsolute = false;
+
+    // Elements
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    const bearImg = document.getElementById('bearImg');
+    const questionCard = document.getElementById('questionCard');
+    const celebrationCard = document.getElementById('celebrationCard');
+    const heartsBg = document.getElementById('heartsBg');
+
+    // Generate Floating Background Hearts
+    function createBackgroundHearts() {
+      const heartSymbols = ['❤️', '💖', '💗', '💓', '💕', '🌸'];
+      for (let i = 0; i < 20; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'bg-heart';
+        heart.innerText = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+        heart.style.left = `${Math.random() * 100}%`;
+        heart.style.animationDuration = `${6 + Math.random() * 6}s`;
+        heart.style.animationDelay = `${Math.random() * 5}s`;
+        heart.style.fontSize = `${1.2 + Math.random() * 1.5}rem`;
+        heartsBg.appendChild(heart);
+      }
+    }
+
+    // Move 'No' button randomly & enlarge 'Yes' button
+    function dodgeNoButton(e) {
+      if (e) {
+        e.preventDefault(); // prevent touch tap default zooming/scrolling
+      }
+
+      // Convert 'No' button to fixed position on first dodge to allow full screen movement
+      if (!isAbsolute) {
+        const rect = noBtn.getBoundingClientRect();
+        noBtn.style.position = 'fixed';
+        noBtn.style.left = `${rect.left}px`;
+        noBtn.style.top = `${rect.top}px`;
+        isAbsolute = true;
+      }
+
+      // Calculate available screen boundary padding
+      const padding = 20;
+      const btnWidth = noBtn.offsetWidth || 120;
+      const btnHeight = noBtn.offsetHeight || 50;
+
+      const maxX = window.innerWidth - btnWidth - padding;
+      const maxY = window.innerHeight - btnHeight - padding;
+
+      const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+      const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+      noBtn.style.left = `${randomX}px`;
+      noBtn.style.top = `${randomY}px`;
+
+      // Cycle through funny texts
+      excuseIndex = (excuseIndex + 1) % noExcuses.length;
+      noBtn.innerText = noExcuses[excuseIndex];
+
+      // Grow the 'Yes' button
+      yesScale += 0.25;
+      yesBtn.style.transform = `scale(${yesScale})`;
+
+      // Create cute mini heart particle at cursor/touch
+      if (e && (e.clientX || (e.touches && e.touches[0]))) {
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        spawnBurstHeart(clientX, clientY);
+      }
+    }
+
+    // Spawn tiny floating burst heart
+    function spawnBurstHeart(x, y) {
+      const heart = document.createElement('div');
+      heart.className = 'burst-heart';
+      heart.innerText = '💔';
+      
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 40 + Math.random() * 60;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance;
+
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      heart.style.setProperty('--tw-x', `${tx}px`);
+      heart.style.setProperty('--tw-y', `${ty}px`);
+      heart.style.setProperty('--tw-r', `${Math.random() * 60 - 30}deg`);
+
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 1200);
+    }
+
+    // Celebration sequence when YES is clicked
+    function handleYesClick() {
+      // Hide question card, show celebration card
+      questionCard.classList.add('hidden');
+      celebrationCard.classList.remove('hidden');
+      celebrationCard.classList.add('flex');
+
+      // Trigger Confetti Party
+      triggerCelebrationEffects();
+    }
+
+    // Confetti and floating heart explosion
+    function triggerCelebrationEffects() {
+      // Confetti burst using canvas-confetti
+      if (typeof confetti === 'function') {
+        // First big burst
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#f43f5e', '#ec4899', '#fb7185', '#ffd1d9', '#ffffff']
+        });
+
+        // Continuous side cannons
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+
+        const interval = setInterval(function() {
+          const timeLeft = animationEnd - Date.now();
+
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+
+          const particleCount = 40 * (timeLeft / duration);
+
+          confetti({
+            particleCount,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.7 },
+            colors: ['#f43f5e', '#ec4899', '#f472b6']
+          });
+          confetti({
+            particleCount,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.7 },
+            colors: ['#f43f5e', '#ec4899', '#f472b6']
+          });
+        }, 250);
+      }
+
+      // Extra custom heart burst across center screen
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      for (let i = 0; i < 25; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.className = 'burst-heart';
+          heart.innerText = ['💖', '❤️', '💕', '✨', '🥰'][Math.floor(Math.random() * 5)];
+          
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 80 + Math.random() * 150;
+          const tx = Math.cos(angle) * distance;
+          const ty = Math.sin(angle) * distance;
+
+          heart.style.left = `${centerX}px`;
+          heart.style.top = `${centerY}px`;
+          heart.style.setProperty('--tw-x', `${tx}px`);
+          heart.style.setProperty('--tw-y', `${ty}px`);
+          heart.style.setProperty('--tw-r', `${Math.random() * 90 - 45}deg`);
+
+          document.body.appendChild(heart);
+          setTimeout(() => heart.remove(), 1200);
+        }, i * 40);
+      }
+    }
+
+    // Reset back to initial state
+    function resetCard() {
+      excuseIndex = 0;
+      yesScale = 1;
+      isAbsolute = false;
+
+      // Reset Yes button transform
+      yesBtn.style.transform = 'scale(1)';
+
+      // Reset No button style & location
+      noBtn.style.position = 'relative';
+      noBtn.style.left = 'auto';
+      noBtn.style.top = 'auto';
+      noBtn.innerText = 'No 💔';
+
+      // Switch cards view
+      celebrationCard.classList.add('hidden');
+      celebrationCard.classList.remove('flex');
+      questionCard.classList.remove('hidden');
+    }
+
+    // Initialize on window load
+    window.onload = function() {
+      createBackgroundHearts();
+    };
+  </script>
+</body>
+</html>
